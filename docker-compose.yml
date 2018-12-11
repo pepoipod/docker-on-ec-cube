@@ -7,6 +7,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: nqanfqafjw
     volumes:
+      - ./create_db.sh:/create_db.sh
       - ec-cube-test-db-data:/var/lib/mysql
     ports:
       - '3333:3306'

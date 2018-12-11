@@ -41,5 +41,9 @@ sitemap.xml.gz
 /html/user_data/include/preview/*
 /html/user_data/packages/default/js/*
 /html/user_data/templates/preview/*
+
+var/cache/*
+var/sessions/*
+var/log/*
 !.gitignore
 !.gitkeep

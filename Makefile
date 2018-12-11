@@ -23,6 +23,6 @@ down:
 login:
 	docker exec -it ec_cube_test_app bash
 
-# db作成（未テスト）
+# db作成
 create_db:
-	docker exec -it ec_cube_test_db bash -c "mysql -uroot -p $MYSQL_ROOT_PASSWORD -e \"CREATE DATABASE eccube /*\!40100 DEFAULT CHARACTER SET utf8 */;\""
+	docker exec -it ec_cube_test_db ./create_db.sh
