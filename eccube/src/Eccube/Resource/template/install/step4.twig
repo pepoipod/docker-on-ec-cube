@@ -1,0 +1,63 @@
+{#
+This file is part of EC-CUBE
+
+Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+
+http://www.lockon.co.jp/
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+#}
+{% extends 'frame.twig' %}
+
+{% set current = 4 %}
+
+{% form_theme form _self %}
+{% block form_row %}
+    <div class="form-group{% if not valid %} has-error{% endif %}">
+        <label>{{ label }}
+            {% if required %}<span class="required">*</span>{% endif %}
+        </label>
+        {{ form_widget(form) }}
+        {{ form_errors(form) }}
+    </div>
+{% endblock %}
+
+{% block checkbox_row %}
+    <div class="form-group{% if not valid %} has-error{% endif %}">
+        {{ form_widget(form) }}
+        {{ form_errors(form) }}
+    </div>
+{% endblock %}
+
+{% block main %}
+    <div id="main" class="step5">
+        <div class="main_inner">
+            <div class="main_content">
+                <div class="page-header">
+                    <h1>{{ 'データベースの設定'|trans }}</h1>
+                </div>
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-10 col-md-offset-1">
+                            <form name="form1" id="form1" method="post" action="{{ path('install_step4') }}">
+                                {{ form_widget(form._token) }}
+                                {{ form_row(form.database) }}
+                                {{ form_row(form.database_host) }}
+                                {{ form_row(form.database_port) }}
+                                {{ form_row(form.database_name) }}
+                                {{ form_row(form.database_user) }}
+                                {{ form_row(form.database_password) }}
+                                <ul class="btn_area">
+                                    <li><button type="submit" class="btn btn-primary btn-block btn-lg">{{ '次へ進む'|trans }}</button></li>
+                                    <li><a href="{{ path('install_step3') }}" class="btn btn-link btn-block btn-lg">{{ '前へ戻る'|trans }}</a></li>
+                                </ul>
+                            </form>
+                        </div>
+                        <!-- /.col -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,28 @@
+version: '3.7'
+
+services:
+  db:
+    image: mysql:5.7.20
+    container_name: ec_cube_test_db
+    environment:
+      MYSQL_ROOT_PASSWORD: nqanfqafjw
+    volumes:
+      - ec-cube-test-db-data:/var/lib/mysql
+    ports:
+      - '3333:3306'
+  app:
+    build: .
+    image: iwamoto/kec-cube-test-app:local
+    container_name: ec_cube_test_app
+    volumes:
+      - ./eccube:/var/www/html
+    ports:
+      - '8080:80'
+    stdin_open: true
+    tty: true
+    depends_on:
+      - db
+
+volumes:
+  ec-cube-test-db-data:
+    driver: local

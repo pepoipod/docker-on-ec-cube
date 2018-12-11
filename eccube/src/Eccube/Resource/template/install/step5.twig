@@ -1,0 +1,72 @@
+{#
+This file is part of EC-CUBE
+
+Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+
+http://www.lockon.co.jp/
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+#}
+{% extends 'frame.twig' %}
+
+{% set current = 5 %}
+
+{% form_theme form _self %}
+{% block form_row %}
+    <div class="form-group{% if not valid %} has-error{% endif %}">
+        <label>{{ label }}
+            {% if required %}<span class="required">*</span>{% endif %}
+        </label>
+        {{ form_widget(form) }}
+        {{ form_errors(form) }}
+    </div>
+{% endblock %}
+
+{% block checkbox_row %}
+    <div class="form-group{% if not valid %} has-error{% endif %}">
+        {{ form_widget(form) }}
+        {{ form_errors(form) }}
+    </div>
+{% endblock %}
+
+{% block main %}
+    <div id="main" class="step6">
+        <div class="main_inner">
+            <div class="main_content">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="page-header">
+                                <h1>{{ 'データベースの初期化'|trans }}</h1>
+                                <p>{{ 'データベースの初期化を行います。初期化には少し時間がかかる場合があります。<br>すでにテーブル等が作成されている場合は中断されます。'|trans|raw }}</p>
+                            </div>
+                            <form name="form1" id="form1" method="post" action="{{ path('install_step5') }}">
+                                {{ form_widget(form._token) }}
+                                <div class="note_box">
+                                    <p>{{ '旧バージョンをインストールしていて、既存の情報を削除したくない場合はチェックをいれてください'|trans }}</p>
+                                    {{ form_widget(form.no_update) }}
+
+                                    {% for error in app.session.flashbag.get('eccube.front.error')  %}
+                                        <div class="message">
+                                            <p class="errormsg bg-danger">
+                                                <span class="initialism form-error-icon badge badge-danger">ERROR</span>
+                                                <span class="form-error-message">{{ error|trans|nl2br }}</span>
+                                            </p>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+
+                                <ul class="btn_area">
+                                    <li><button type="submit" class="btn btn-primary btn-block btn-lg">{{ '次へ進む'|trans }}</button></li>
+                                    <li><a href="{{ path('install_step4') }}" class="btn btn-link btn-block btn-lg">{{ '前へ戻る'|trans }}</a></li>
+                                </ul>
+                            </form>
+                        </div>
+                        <!-- /.col -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

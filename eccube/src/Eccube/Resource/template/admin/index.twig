@@ -1,0 +1,325 @@
+{#
+This file is part of EC-CUBE
+
+Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+
+http://www.lockon.co.jp/
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+#}
+{% extends '@admin/default_frame.twig' %}
+
+{% block title %}{{ 'admin.home'|trans }}{% endblock %}
+{% block sub_title %}{% endblock %}
+
+{% block javascript %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
+    <script>
+        $(function() {
+            var options = {
+                legend: {
+                    display: false
+                },
+                layout: {
+                    padding: {
+                        left: 0,
+                        right: 0,
+                        top: 25,
+                        bottom: 0
+                    }
+                },
+                tooltips: {
+                    callbacks: {
+                        label: function(tooltipItem, data) {
+                            return '{{ currency_symbol() }}' + tooltipItem.yLabel.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                        }
+                    }
+                },
+                scales: {
+                    yAxes: [
+                        {
+                            id: 'y-axis-1',
+                            display: true,
+                            ticks: {
+                                beginAtZero: true,
+                                callback: function(label, index, labels) {
+                                    if (Math.floor(label) === label) {
+                                        return '{{ currency_symbol() }}' + label.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            };
+
+            var priceBackgroundColor = 'rgba(58, 115, 188, 1)';
+            var priceBorderColor = 'rgba(255, 255, 255, 0)';
+
+            $.ajax({
+                url: '{{ url('admin_homepage_sale') }}',
+                type: 'GET',
+                dataType: 'json'
+            }).done(function(datas) {
+
+                for (var i = 0; i < datas.length; i++) {
+                    var data = datas[i];
+
+                    var labels = [];
+                    var prices = [];
+                    var priceBackgroundColors = [];
+                    var priceBorderColors = [];
+                    Object.keys(data).forEach(function(key) {
+                        labels.push(key);
+                        prices.push(data[key].price);
+                        priceBackgroundColors.push(priceBackgroundColor);
+                        priceBorderColors.push(priceBorderColor);
+                    });
+
+                    var ctx = $('#chart-' + i)[0].getContext('2d');
+                    ctx.canvas.height = 100;
+                    var chart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                {
+                                    type: 'bar',
+                                    label: '{{ 'admin.home.sales_summary_amount'|trans }}',
+                                    data: prices,
+                                    backgroundColor: priceBackgroundColors,
+                                    borderColor: priceBorderColors,
+                                    borderWidth: 1,
+                                    yAxisID: 'y-axis-1'
+                                }
+                            ]
+                        },
+                        options: options
+                    });
+                }
+            }).fail(function(data) {
+            }).always(function() {
+                $('#loading').hide();
+            });
+
+        });
+
+    </script>
+{% endblock javascript %}
+
+{% block main %}
+    {% if is_danger_admin_url %}
+    <div class="alert alert-warning alert-dismissible fade show m-3" role="alert">
+        <i class="fa fa-warning fa-lg mr-2"></i>
+        <span class="font-weight-bold">{{ 'admin.common.admin_url_warning'|trans({ '%url%': url('admin_setting_system_security') })|raw }}</span>
+        <button class="close" type="button" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">×</span>
+        </button>
+    </div>
+    {% endif %}
+    <div class="c-contentsArea__cols">
+        <div class="c-contentsArea__primaryCol">
+            <div class="c-primaryCol">
+                <div class="row">
+                    <div class="col-4 mb-4">
+                        <div id="order-status" class="card rounded border-0 h-100">
+                            <div class="card-header">
+                                <a href="{{ url('admin_order') }}">
+                                    <span class="card-title">{{ 'admin.home.order_status_title'|trans }}</span>
+                                </a>
+                            </div>
+                            <div class="card-body p-0">
+                                {% for OrderStatus in OrderStatuses %}
+                                    <div class="d-block border border-top-0 border-left-0 border-right-0">
+                                        <a href="{{ url('admin_order', { 'order_status_id': OrderStatus.id }) }}" class="p-3 d-block">
+                                            <div class="row align-items-center">
+                                                <div class="col align-middle">
+                                                    <span class="align-middle">{{ OrderStatus.name }}</span>
+                                                </div>
+                                                <div class="col-auto text-right align-middle">
+                                                    <span class="h4 align-middle font-weight-normal text-dark">{{ Orders is not empty and Orders[OrderStatus.id] is defined ? Orders[OrderStatus.id] : 0 }}</span>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div><!-- /#order-status -->
+                    </div>
+                    <div class="col-8 mb-4">
+                        <div id="chart-statistics" class="card rounded border-0 h-100">
+                            <div class="card-header">
+                                <div class="d-inline-block">
+                                    <span class="card-title">{{ 'admin.home.sales_summary_title'|trans }}</span>
+                                </div>
+                            </div>
+                            <div class="card-body pt-0">
+                                <div class="row text-center border-bottom mb-3">
+                                    <div class="col-4 py-2 border-right">
+                                        <div class="h3">
+                                            {% set amount = salesThisMonth is empty ? 0 : salesThisMonth.order_amount %}
+                                            {% set count = salesThisMonth is empty ? 0 : salesThisMonth.order_count %}
+                                            {{ 'admin.home.sales_summary_value'|trans({ '%amount%': amount|price, '%count%': count|number_format }) }}
+                                        </div>
+                                        <small>{{ 'admin.home.sales_summary_this_month'|trans }}</small>
+                                    </div>
+                                    <div class="col-4 py-2 border-right">
+                                        <div class="h3">
+                                            {% set amount = salesToday is empty ? 0 : salesToday.order_amount %}
+                                            {% set count = salesToday is empty ? 0 : salesToday.order_count %}
+                                            {{ 'admin.home.sales_summary_value'|trans({ '%amount%': amount|price, '%count%': count|number_format }) }}
+                                        </div>
+                                        <small>{{ 'admin.home.sales_summary_today'|trans }}</small>
+                                    </div>
+                                    <div class="col-4 py-2">
+                                        <div class="h3">
+                                            {% set amount = salesYesterday is empty ? 0 : salesYesterday.order_amount %}
+                                            {% set count = salesYesterday is empty ? 0 : salesYesterday.order_count %}
+                                            {{ 'admin.home.sales_summary_value'|trans({ '%amount%': amount|price, '%count%': count|number_format }) }}
+                                        </div>
+                                        <small>{{ 'admin.home.sales_summary_yesterday'|trans }}</small>
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="col text-center">
+                                        <div class="btn-group nav d-inline-flex" id="pills-tab" role="tablist">
+                                            <a class="nav-link active btn btn-ec-tab py-2 pl-4 pr-4" id="pills-weekly-tab" data-toggle="pill" href="#pills-weekly" role="tab" aria-controls="pills-weekly" aria-selected="true">
+                                                {{ 'admin.home.sales_summary_weekly'|trans }}
+                                            </a>
+                                            <a class="nav-link btn btn-ec-tab py-2 pl-4 pr-4" id="pills-monthly-tab" data-toggle="pill" href="#pills-monthly" role="tab" aria-controls="pills-monthly" aria-selected="false">
+                                                {{ 'admin.home.sales_summary_monthly'|trans }}
+                                            </a>
+                                            <a class="nav-link btn btn-ec-tab py-2 pl-4 pr-4" id="pills-year-tab" data-toggle="pill" href="#pills-year" role="tab" aria-controls="pills-year" aria-selected="false">
+                                                {{ 'admin.home.sales_summary_yearly'|trans }}
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col">
+                                        <div id="loading" class="text-center pt-5">
+                                            <img src="{{ asset('assets/img/loading.gif', 'admin') }}">
+                                        </div>
+                                        <div class="tab-content" id="pills-tabContent">
+                                            <div class="tab-pane fade show active" id="pills-weekly" role="tabpanel" aria-labelledby="pills-weekly-tab">
+                                                <canvas id="chart-0"></canvas>
+                                            </div>
+                                            <div class="tab-pane fade" id="pills-monthly" role="tabpanel" aria-labelledby="pills-monthly-tab">
+                                                <canvas id="chart-1"></canvas>
+                                            </div>
+                                            <div class="tab-pane fade" id="pills-year" role="tabpanel" aria-labelledby="pills-year-tab">
+                                                <canvas id="chart-2"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div><!-- /#chart-statistics -->
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col mb-4">
+                        <div id="shop-statistical" class="card rounded border-0 h-100">
+                            <div class="card-header">
+                                <div class="d-inline-block">
+                                    <span class="card-title">{{ 'admin.home.shop_status_title'|trans }}</span>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="d-block border border-top-0 border-left-0 border-right-0">
+                                    <a href="{{ url('admin_homepage_nonstock') }}" class="p-3 d-block">
+                                        <div class="row align-items-center">
+                                            <div class="col-2 align-middle text-center">
+                                                <i class="fa fa-inbox fa-2x text-secondary" aria-hidden="true"></i>
+                                            </div>
+                                            <div class="col p-0">
+                                                <span class="align-middle">{{ 'admin.home.shop_status_out_of_stock'|trans }}</span>
+                                            </div>
+                                            <div class="col-auto text-right align-middle">
+                                                <span class="h4 align-middle font-weight-normal text-dark">{{ countNonStockProducts|number_format }}</span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                                <div class="d-block border border-top-0 border-left-0 border-right-0">
+                                    <a href="{{ url('admin_product') }}" class="p-3 d-block">
+                                        <div class="row align-items-center">
+                                            <div class="col-2 align-middle text-center">
+                                                <i class="fa fa-cubes fa-2x text-secondary" aria-hidden="true"></i>
+                                            </div>
+                                            <div class="col p-0">
+                                                <span class="align-middle">{{ 'admin.home.shop_status_products'|trans }}</span>
+                                            </div>
+                                            <div class="col-auto text-check align-middle">
+                                                <span class="h4 align-middle font-weight-normal text-dark">{{ countProducts|number_format }}</span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                                <div class="d-block border border-top-0 border-left-0 border-right-0">
+                                    <a href="{{ url('admin_homepage_customer') }}" class="p-3 d-block">
+                                        <div class="row align-items-center">
+                                            <div class="col-2 align-middle text-center">
+                                                <i class="fa fa-users fa-2x text-secondary" aria-hidden="true"></i>
+                                            </div>
+                                            <div class="col p-0">
+                                                <span class="align-middle">{{ 'admin.home.shop_status_customers'|trans }}</span>
+                                            </div>
+                                            <div class="col-auto text-check align-middle">
+                                                <span class="h4 align-middle font-weight-normal text-dark">{{ countCustomers|number_format }}</span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div><!-- /#shop-statistical -->
+                    </div>
+                    <div class="col mb-4">
+                        <div id="ec-cube-plugin" class="card rounded border-0 h-100">
+                            <div class="card-header border-bottom-0">
+                                <div class="d-inline-block">
+                                    <span class="card-title">{{ 'admin.home.recommend_plugins_title'|trans }}</span>
+                                </div>
+                            </div>
+                            <div class="card-body py-0" style="max-height: 395px; overflow-y: scroll">
+                                {% for plugin in recommendedPlugins %}
+                                    <div class="row py-3 border border-bottom-0 border-left-0 border-right-0">
+                                        <div class="col-5 col-md-4">
+                                            <a href="#" data-toggle="modal" data-target="#searchPluginModal-{{ plugin.id }}">
+                                                <img src="{{ plugin.image }}" class="w-100" alt="{{ plugin.name }}">
+                                            </a>
+                                        </div>
+                                        <div class="col-7 col-md-8 pl-0">
+                                            <a href="#" data-toggle="modal" data-target="#searchPluginModal-{{ plugin.id }}">{{ plugin.name }}</a>
+                                            <p class="m-0 pt-2">
+                                                {{ plugin.short_description }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    {{ include('@admin/Store/plugin_detail_modal.twig', {'item': plugin} ) }}
+                                {% endfor %}
+                            </div>
+                            <div class="card-footer">
+                                > <a href="{{ url('admin_store_plugin_owners_search_page') }}">{{ 'admin.home.recommend_plugins.owner_store'|trans }}</a>
+                            </div>
+                        </div><!-- /#ec-cube-plugin -->
+                    </div>
+                    <div class="col mb-4">
+                        <div id="ec-cube-news" class="card rounded border-0 h-100">
+                            <div class="card-header">
+                                <div class="d-inline-block">
+                                    <span class="card-title">{{ 'admin.home.news_title'|trans }}</span>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <iframe name="information" class="link_list_wrap" src="{{ eccube_config.eccube_info_url }}" style="width:100%; border:0; min-height:300px;"></iframe>
+                            </div>
+                        </div><!-- /#ec-cube-news -->
+                    </div>
+                </div><!-- /.row -->
+            </div><!-- /.c-primaryCol -->
+        </div><!-- /.c-contentsArea__primaryCol -->
+    </div><!-- /.c-contentsArea__cols -->
+
+{% endblock %}

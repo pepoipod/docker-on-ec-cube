@@ -1,0 +1,65 @@
+security:
+    encoders:
+        # Our user class and the algorithm we'll use to encode passwords
+        # https://symfony.com/doc/current/security.html#c-encoding-the-user-s-password
+        Eccube\Entity\Member:
+          id: Eccube\Security\Core\Encoder\PasswordEncoder
+        Eccube\Entity\Customer:
+          id: Eccube\Security\Core\Encoder\PasswordEncoder
+    providers:
+        # https://symfony.com/doc/current/security.html#b-configuring-how-users-are-loaded
+        # In this example, users are stored via Doctrine in the database
+        # To see the users at src/App/DataFixtures/ORM/LoadFixtures.php
+        # To load users from somewhere else: https://symfony.com/doc/current/security/custom_provider.html
+        member_provider:
+            id: Eccube\Security\Core\User\MemberProvider
+        customer_provider:
+            id: Eccube\Security\Core\User\CustomerProvider
+    # https://symfony.com/doc/current/security.html#initial-security-yml-setup-authentication
+    firewalls:
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+        admin:
+            pattern: '^/%eccube_admin_route%/'
+            anonymous: true
+            provider: member_provider
+            form_login:
+                check_path: admin_login
+                login_path: admin_login
+                csrf_token_generator: security.csrf.token_manager
+                default_target_path: admin_homepage
+                username_parameter: 'login_id'
+                password_parameter: 'password'
+                use_forward: true
+                success_handler: eccube.security.success_handler
+                failure_handler: eccube.security.failure_handler
+            logout:
+                path: admin_logout
+                target: admin_login
+        customer:
+            pattern: ^/
+            anonymous: true
+            provider: customer_provider
+            remember_me:
+                secret: '%kernel.secret%'
+                lifetime: 3600
+                name: eccube_remember_me
+                remember_me_parameter: 'login_memory'
+            form_login:
+                check_path: mypage_login
+                login_path: mypage_login
+                csrf_token_generator: security.csrf.token_manager
+                default_target_path: homepage
+                username_parameter: 'login_email'
+                password_parameter: 'login_pass'
+                use_forward: true
+                success_handler: eccube.security.success_handler
+                failure_handler: eccube.security.failure_handler
+            logout:
+                path: logout
+                target: homepage
+
+    access_decision_manager:
+        strategy: unanimous
+        allow_if_all_abstain: false

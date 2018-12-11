@@ -1,0 +1,121 @@
+{#
+This file is part of EC-CUBE
+
+Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+
+http://www.lockon.co.jp/
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+#}
+{% extends '@admin/default_frame.twig' %}
+
+{% set menus = ['content', 'block'] %}
+
+{% block title %}{{ 'admin.content.block_management'|trans }}{% endblock %}
+{% block sub_title %}{{ 'admin.content.contents_management'|trans }}{% endblock %}
+
+{% block stylesheet %}
+    <style type="text/css">
+        li.list-group-item {
+            z-index: inherit !important;
+        }
+    </style>
+{% endblock %}
+
+{% block javascript %}
+    <script>
+        // searchWordの実行
+        $('#search-block').on('input', function () {
+            searchWord($(this).val(), $(".list-group li"));
+        });
+    </script>
+{% endblock javascript %}
+
+{% block main %}
+    <div class="c-contentsArea__cols">
+        <div class="c-contentsArea__primaryCol">
+            <div class="c-primaryCol">
+                <div class="row justify-content-between mb-2">
+                    <div class="col-9">
+                        <a class="btn btn-ec-regular" href="{{ url('admin_content_block_new') }}">{{ 'admin.common.create__new'|trans }}</a>
+                    </div>
+                    <div class="col-3">
+                        <div class="form-row">
+                            <div class="col">
+                                <div class="input-group mb-3">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text" id="basic-addon1"><i class="fa fa-search"></i></span>
+                                    </div>
+                                    <input id="search-block" class="form-control" type="search" aria-label="Search">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card rounded border-0 mb-4">
+                    <div class="card-body p-0">
+                        <div class="card rounded border-0">
+                            <ul class="list-group list-group-flush">
+                                {% for Block in Blocks %}
+                                    <li id="ex-block-{{ Block.id }}" class="list-group-item">
+                                        <div class="row">
+                                            <div class="col-7 col-md-10 d-flex align-items-center">
+                                                <a href="{{ url('admin_content_block_edit', {id: Block.id}) }}">
+                                                    {{ Block.name }}
+                                                </a>
+                                            </div>
+                                            <div class="col-5 col-md-2">
+                                                <div class="row">
+                                                    <div class="col-6 text-right">
+                                                        <a href="{{ url('admin_content_block_edit', {id: Block.id}) }}"
+                                                           class="btn btn-ec-actionIcon mr-3" data-tooltip="true"
+                                                           data-placement="top" title="{{ 'admin.common.edit'|trans }}">
+                                                            <i class="fa fa-pencil fa-lg text-secondary"></i>
+                                                        </a>
+                                                    </div>
+                                                    {% if Block.deletable %}
+                                                        <div class="col-6">
+                                                            <div class="d-inline-block mr-3" data-tooltip="true" data-placement="top" title="{{ 'admin.common.delete'|trans }}">
+                                                                <a href="#" data-toggle="modal" data-target="#confirmModal-{{ Block.id }}" class="btn btn-ec-actionIcon">
+                                                                    <i class="fa fa-close fa-lg text-secondary"></i>
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal fade" id="confirmModal-{{ Block.id }}" tabindex="-1" role="dialog"
+                                                             aria-labelledby="confirmModal-{{ Block.id }}" aria-hidden="true">
+                                                            <div class="modal-dialog" role="document">
+                                                                <div class="modal-content">
+                                                                    <div class="modal-header">
+                                                                        <h5 class="modal-title font-weight-bold">{{ 'admin.common.delete_modal__title'|trans }}</h5>
+                                                                        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                                                                            <span aria-hidden="true">×</span>
+                                                                        </button>
+                                                                    </div>
+                                                                    <div class="modal-body text-left">
+                                                                        <p class="text-left">{{ 'admin.common.delete_modal__message'|trans({ '%name%' : Block.name }) }}</p>
+                                                                    </div>
+                                                                    <div class="modal-footer">
+                                                                        <button class="btn btn-ec-sub" type="button" data-dismiss="modal">{{ 'admin.common.cancel'|trans }}</button>
+                                                                        <a href="{{ url('admin_content_block_delete', {id: Block.Id} ) }}"
+                                                                           class="btn btn-ec-delete" data-confirm="false" {{ csrf_token_for_anchor() }} data-method="delete">
+                                                                            {{ 'admin.common.delete'|trans }}
+                                                                        </a>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

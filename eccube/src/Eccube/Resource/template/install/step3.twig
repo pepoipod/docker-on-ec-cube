@@ -1,0 +1,78 @@
+{#
+This file is part of EC-CUBE
+
+Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+
+http://www.lockon.co.jp/
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+#}
+{% extends 'frame.twig' %}
+
+{% set current = 3 %}
+
+{% form_theme form _self %}
+{% block form_row %}
+    <div class="form-group{% if not valid %} has-error{% endif %}">
+        <label>{{ label }}
+            {% if required %}<span class="required">*</span>{% endif %}
+        </label>
+        {{ form_widget(form) }}
+        {{ form_errors(form) }}
+    </div>
+{% endblock %}
+
+{% block checkbox_row %}
+    <div class="form-group{% if not valid %} has-error{% endif %}">
+        {{ form_widget(form) }}
+        {{ form_errors(form) }}
+    </div>
+{% endblock %}
+
+{% block main %}
+    <div id="main" class="step4">
+        <div class="main_inner">
+            <div class="main_content">
+                <div class="page-header">
+                    <h1>{{ 'サイトの設定'|trans }}</h1>
+                </div>
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-10 col-md-offset-1">
+                            <form name="form1" id="form1" method="post" action="{{ path('install_step3') }}">
+                                {{ form_widget(form._token) }}
+                                {{ form_row(form.shop_name) }}
+                                {{ form_row(form.email) }}
+                                {{ form_row(form.login_id) }}
+                                {{ form_row(form.login_pass) }}
+
+                                <h2>{{ 'セキュリティの設定'|trans}}</h2>
+                                {{ form_row(form.admin_dir , {attr : { placeholder: 'セキュリティのため推測されにくいディレクトリ名を入力して下さい'|trans }}) }}
+                                {% if request.secure %}
+                                    {{ form_row(form.admin_force_ssl) }}
+                                {% else %}
+                                    <span class="text-danger">{{ 'httpsからの接続でなければSSL制限を設定できません。'|trans }}</span>
+                                    {{ form_row(form.admin_force_ssl , {attr : {disabled: 'disabled', 'value': null}}) }}
+                                {% endif %}
+                                {{ form_row(form.admin_allow_hosts , {attr : {rows: '5'}}) }}
+
+                                <h2>{{ 'メールの設定'|trans }}</h2>
+                                {{ form_row(form.smtp_host) }}
+                                {{ form_row(form.smtp_port) }}
+                                {{ form_row(form.smtp_username) }}
+                                {{ form_row(form.smtp_password) }}
+
+                                <ul class="btn_area">
+                                    <li><button type="submit" class="btn btn-primary btn-block btn-lg">{{ '次へ進む'|trans }}</button></li>
+                                    <li><a href="{{ path('install_step2') }}" class="btn btn-link btn-block btn-lg">{{ '前へ戻る'|trans }}</a></li>
+                                </ul>
+                            </form>
+                        </div>
+                        <!-- /.col -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

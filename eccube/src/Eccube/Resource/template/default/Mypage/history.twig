@@ -1,0 +1,189 @@
+{#
+This file is part of EC-CUBE
+
+Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+
+http://www.lockon.co.jp/
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+#}
+{% extends 'default_frame.twig' %}
+
+{% set mypageno = 'index' %}
+
+{% set body_class = 'mypage' %}
+
+{% block main %}
+    <div class="ec-layoutRole__main">
+        <div class="ec-mypageRole">
+            <div class="ec-pageHeader">
+                <h1>{{ 'マイページ'|trans }}/{{ 'ご注文履歴詳細'|trans }}</h1>
+            </div>
+            {% include 'Mypage/navi.twig' %}
+        </div>
+
+        {% set remessage = false %}
+
+        <div class="ec-orderRole">
+            <div class="ec-orderRole__detail">
+                <div class="ec-orderOrder">
+                    <div class="ec-definitions">
+                        <dt>{{ 'ご注文日時'|trans }}</dt>
+                        <dd>{{ Order.create_date|date_sec }}</dd>
+                    </div>
+                    <div class="ec-definitions">
+                        <dt>{{ 'ご注文番号'|trans }}</dt>
+                        <dd>{{ Order.order_no }}</dd>
+                    </div>
+                    {% if BaseInfo.option_mypage_order_status_display %}
+                        <div class="ec-definitions">
+                            <dt>{{ 'ご注文状況'|trans }}</dt>
+                            <dd>{{ Order.CustomerOrderStatus }}</dd>
+                        </div>
+                    {% endif %}
+                    {% if BaseInfo.isOptionPoint %}
+                        <div class="ec-definitions">
+                            <dt>{{ 'ご利用ポイント'|trans }}</dt>
+                            <dd>{{ Order.usePoint }} pt</dd>
+                        </div>
+                        <div class="ec-definitions">
+                            <dt>{{ '加算ポイント'|trans }}</dt>
+                            <dd>{{ Order.addPoint }} pt</dd>
+                        </div>
+                    {% endif %}
+
+                </div>
+                <div class="ec-orderDelivery">
+                    <div class="ec-rectHeading">
+                        <h2>{{ '配送情報'|trans }}</h2>
+                    </div>
+                    {% for Shipping in Order.Shippings %}
+                        <div class="ec-orderDelivery__title">{{ 'お届け先'|trans }}{% if Order.multiple %}({{ loop.index }}){% endif %}</div>
+                        {% for orderItem in Shipping.productOrderItems %}
+                            <div class="ec-orderDelivery__item">
+                                <div class="ec-imageGrid">
+                                    <div class="ec-imageGrid__img">
+                                        {% if orderItem.product is null %}
+                                            <img src="{{ asset(''|no_image_product, 'save_image') }}"/>
+                                        {% else %}
+                                            <img src="{{ asset(orderItem.Product.MainListImage|no_image_product, 'save_image') }}"
+                                                 alt="{{ orderItem.productName }}"/>
+                                        {% endif %}
+                                    </div>
+                                    <div class="ec-imageGrid__content">
+                                        <p>
+                                            {% if orderItem.Product is not null and orderItem.Product.enable %}
+                                                <a href="{{ url('product_detail', {'id': orderItem.Product.id}) }}">{{ orderItem.productName }}</a>
+                                            {% else %}
+                                                {{ orderItem.productName }}
+                                            {% endif %} ×{{ orderItem.quantity }}
+                                        </p>
+                                        {% if orderItem.ProductClass is not null %}
+                                            {% if orderItem.ProductClass.ClassCategory1 is not null %}
+                                                {{ orderItem.productClass.classCategory1.className.name }}：{{ orderItem.productClass.classCategory1 }}
+                                            {% endif %}
+                                            {% if orderItem.ProductClass.ClassCategory2 %}
+                                                <br>{{ orderItem.productClass.classCategory2.className.name }}：{{ orderItem.productClass.classCategory2 }}
+                                            {% endif %}
+                                        {% endif %}
+                                        <p>{{ orderItem.price_inc_tax|price }}
+                                            × {{ orderItem.quantity|number_format }}</p>
+                                        {% if orderItem.product and orderItem.price_inc_tax != orderItem.productClass.price02IncTax %}
+                                            <p class="ec-color-accent">
+                                                {{ '【現在価格】'|trans }}{{ orderItem.productClass.price02IncTax|price }}</p>
+                                            {% set remessage = true %}
+                                        {% endif %}
+
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                        <div class="ec-orderDelivery__address">
+                            <p>{{ Shipping.name01 }}&nbsp;{{ Shipping.name02 }}&nbsp;
+                                ({{ Shipping.kana01 }}&nbsp;{{ Shipping.kana02 }})</p>
+                            <p>{{ '〒'|trans }}{{ Shipping.postal_code }} {{ Shipping.Pref }}{{ Shipping.addr01 }}{{ Shipping.addr02 }}</p>
+                            <p>{{ Shipping.phone_number }}</p>
+                        </div>
+                        <div class="ec-definitions--soft">
+                            <dt>{{ '配送方法'|trans }} :</dt>
+                            <dd>{{ Shipping.shipping_delivery_name }}</dd>
+                        </div>
+                        <div class="ec-definitions--soft">
+                            <dt>{{ 'お届け日'|trans }} :</dt>
+                            <dd>{{ Shipping.shipping_delivery_date|date_day_with_weekday|default('指定なし'|trans) }}</dd>
+                        </div>
+                        <div class="ec-definitions--soft">
+                            <dt>{{ 'お届け時間'|trans }} :</dt>
+                            <dd>{{ Shipping.shipping_delivery_time|default('指定なし'|trans) }}</dd>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="ec-orderPayment">
+                    <div class="ec-rectHeading">
+                        <h2>{{ 'お支払い情報'|trans }}</h2>
+                    </div>
+                    <p>{{ 'お支払い方法'|trans }} : {{ Order.PaymentMethod }}</p>
+                </div>
+                <div class="ec-orderConfirm">
+                    <div class="ec-rectHeading">
+                        <h2>{{ 'お問い合わせ'|trans }}</h2>
+                    </div>
+                    <p>{{ Order.message|nl2br|default('記載なし'|trans) }}</p>
+                </div>
+                <div class="ec-orderMails">
+                    <div class="ec-rectHeading">
+                        <h2>{{ 'メール配信履歴一覧'|trans }}</h2>
+                    </div>
+                    {% for MailHistory in Order.MailHistories %}
+                        <div class="ec-orderMail">
+                            <div class="ec-orderMail__time">{{ MailHistory.send_date|date_sec }}</div>
+                            <div class="ec-orderMail__link"><a>{{ MailHistory.mail_subject }}</a></div>
+                            <div class="ec-orderMail__body">{{ MailHistory.mail_body|nl2br }}<p class="ec-orderMail__close"><a>{{ '閉じる'|trans }}</a></p></div>
+                        </div>
+                    {% else %}
+                        <p class="ec-reportDescription">{{ 'メール履歴はありません。'|trans }}</p>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="ec-orderRole__summary">
+                <div class="ec-totalBox">
+                    <dl class="ec-totalBox__spec">
+                        <dt>{{ '小計'|trans }}</dt>
+                        <dd>{{ Order.subtotal|price }}</dd>
+                    </dl>
+                    <dl class="ec-totalBox__spec">
+                        <dt>{{ '手数料'|trans }}</dt>
+                        <dd>{{ Order.charge|price }}</dd>
+                    </dl>
+                    <dl class="ec-totalBox__spec">
+                        <dt>{{ '送料'|trans }}</dt>
+                        <dd>{{ Order.delivery_fee_total|price }}</dd>
+                    </dl>
+                    {% if Order.discount > 0 %}
+                        <dl class="ec-totalBox__spec">
+                            <dt>{{ '値引き'|trans }}</dt>
+                            <dd>{{ (0 - Order.discount)|price }}</dd>
+                        </dl>
+                    {% endif %}
+                    <div class="ec-totalBox__total">{{ '合計'|trans }}<span
+                                class="ec-totalBox__price">{{ Order.payment_total|price }}</span><span
+                                class="ec-totalBox__taxLabel">{{ '税込'|trans }}</span></div>
+                    {% if stockOrder %}
+                        <a href="{{ url('mypage_order', {'order_no': Order.order_no }) }}"
+                       class="ec-blockBtn--action load-overlay" {{ csrf_token_for_anchor() }} data-method="put"
+                       data-confirm="false">{{ '再注文する'|trans }}</a>
+                    {% endif %}
+                </div>
+                {% if remessage %}
+                    <p class="ec-color-accent">
+                        <strong>{{ '※金額が変更されている商品があるため、再注文時はご注意ください。'|trans }}</strong>
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="ec-role">
+            <a href="{{ url('mypage') }}" class="ec-inlineBtn">{{ '戻る'|trans }}</a>
+        </div>
+    </div>
+{% endblock %}
