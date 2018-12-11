@@ -19,7 +19,7 @@ run_d:
 down:
 	docker-compose down
 
-# 起動しているrailsサーバーのコンテナにbashでログインする.
+# 起動しているec-cubeのコンテナにbashでログインする.
 login:
 	docker exec -it ec_cube_test_app bash
 
