@@ -13,7 +13,7 @@ ec-cubeをdockerで動かすboiler plateです.
 ## SET UP
 1. `$ make run` を実行.
 2. コンテナ起動後、 `$ make create_db` を実行.
-3. `localhost:8080` にアクセスし、EC-CUBEをセットアップ. DBの設定は、 種類を `MySQL`、サーバーは `db` 、DB名は `eccube` 、 ユーザー名は `root` 、 パスワードは `docker-compose.yml` に記載された `MYSQL_ROOT_PASSWORD` を入力.
+3. `localhost:8080` にアクセスし、EC-CUBEをセットアップ. DBの設定は、 種類を `MySQL`、ホストは `db` 、DB名は `eccube` 、 ユーザー名は `root` 、 パスワードは `docker-compose.yml` に記載された `MYSQL_ROOT_PASSWORD` を入力.
 
 ## Commands
 ### コンテナ起動
